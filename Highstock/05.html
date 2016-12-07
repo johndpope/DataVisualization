@@ -1,0 +1,294 @@
+
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Using Highstock</title>
+
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript">
+var line;
+var trendLines = [];
+var startX, startY, endX, endY;
+var drawing = false;
+var initialPoints = 100;
+var currentPoint = initialPoints;
+var points = [];
+
+$.getJSON('https://www.highcharts.com/samples/data/jsonp.php?filename=aapl-ohlcv.json&callback=?', function (data) {
+    points = data;
+    $('#container').highcharts('StockChart', {
+        title: {
+            text: null
+        },
+        credits: {
+            enabled: false
+        },
+        legend: {
+            enabled: false
+        },
+        exporting: {
+            enabled: false
+        },
+        rangeSelector: {
+            buttonTheme: {
+                fill: 'none',
+                stroke: 'none',
+                    'stroke-width': 0,
+                r: 8,
+                style: {
+                    color: '#01b5a8',
+                    fontWeight: 'bold'
+                },
+                states: {
+                    select: {
+                        fill: '#01b5a8',
+                        style: {
+                            color: 'white'
+                        }
+                    }
+                }
+            },
+            labelStyle: {
+                color: '#01b5a8',
+                fontWeight: 'bold'
+            },
+            inputEnabled: false,
+            buttons: [{
+                type: 'month',
+                count: 1,
+                text: '1m'
+            }, {
+                type: 'month',
+                count: 3,
+                text: '3m'
+            }, {
+                type: 'month',
+                count: 6,
+                text: '6m'
+            }, {
+                type: 'year',
+                count: 1,
+                text: '1y'
+            }, {
+                type: 'all',
+                text: 'All'
+            }],
+            selected: 1
+        },
+        navigator: {
+            margin: 5,
+            height: 30,
+            outlineWidth: 0,
+            handles: {
+                backgroundColor: 'white',
+                borderColor: '#01b5a8'
+            },
+            maskFill: 'rgba(1,181,168,0.6)',
+            series: {
+                fillColor: 'rgba(1,181,168,0.15)'
+            },
+            xAxis: {
+                gridLineWidth: 0,
+                labels: {
+                    enabled: false
+                }
+            }
+        },
+        scrollbar: {
+            enabled: false
+        },
+        chart: {
+            backgroundColor: 'none',
+            marginRight: 15,
+            panning: false,
+            events: {
+                load: function () {
+                    setInterval(function() {
+                            var chart = $("#container").highcharts();
+                        chart.series[0].addPoint([points[currentPoint][0], points[currentPoint][1], points[currentPoint][2], points[currentPoint][3], points[currentPoint][4]]);
+                        currentPoint++;
+                    }, 1000);
+                    
+                    Highcharts.addEvent(this.container, 'mousedown', touchTrendLineStart);
+                    Highcharts.addEvent(this.container, 'mousemove', touchTrendLineMove);
+                    Highcharts.addEvent(this.container, 'mouseup', touchTrendLineEnd);
+
+                    Highcharts.addEvent(this, 'redraw', redrawTrendLines);
+                    Highcharts.wrap(Highcharts.Pointer.prototype, 'pinch', function (c, e) {
+                        if (!drawing) c.call(this, e);
+                    });
+                }
+            }
+        },
+        tooltip: {
+            followPointer: false,
+            followTouchMove: false,
+            positioner: function (boxWidth, boxHeight, point) {
+                return {
+                    x: ($('#container').width() - 36),
+                    y: 10
+                };
+            },
+            formatter: function () {
+                return '$' + Highcharts.numberFormat(this.point.y, 0);
+            },
+            style: {
+                fontSize: '10px',
+                color: '#7cf0d9',
+                padding: '5px',
+            },
+            backgroundColor: '#0d1922',
+            borderColor: '#4e968c',
+            borderWidth: 1,
+            headerFormat: '',
+            footerFormat: '',
+            shared: false
+        },
+        xAxis: {
+            labels: {
+                enabled: false,
+            },
+            tickWidth: 0,
+            lineWidth: 0,
+            minPadding: 0,
+            maxPadding: 0
+        },
+        yAxis: {
+            title: {
+                text: null
+            },
+            gridLineColor: 'rgba(109, 134, 143, 0.2)',
+            labels: {
+                align: 'right',
+                style: {
+                    fontFamily: 'TrebuchetMS',
+                    fontSize: '9px',
+                    color: '#888888',
+                }
+            }
+        },
+        plotOptions: {
+            series: {
+                marker: {
+                    states: {
+                        hover: {
+                            enabled: false
+                        }
+                    }
+                }
+            }
+        },
+        series: [{
+            type: 'candlestick',
+            data: points.slice(0, initialPoints - 1),
+            shadow: false,
+            lineColor: 'lightgray',
+            lineWidth: 1,
+            color: '#fd0d1b',
+            upColor: '#29fe2f'
+        }]
+    });
+});
+
+function touchTrendLineStart(event) {
+    var chart = $("#container").highcharts();
+    var bbox = chart.container.getBoundingClientRect();
+    startX = event.originalEvent.pageX - bbox.left;
+    startY = event.originalEvent.pageY - bbox.top;
+
+    if (chart.isInsidePlot(startX - chart.plotLeft, startY - chart.plotTop)) {
+        line = chart.renderer.path(['M', startX, startY, 'L', startX, startY]).attr({
+            'stroke-width': 1,
+            stroke: 'black'
+        }).add();
+        drawing = true;
+        return false;
+    }
+}
+
+function touchTrendLineMove(event) {
+    if (drawing) {
+        var chart = $("#container").highcharts();
+        var bbox = chart.container.getBoundingClientRect();
+        endX = event.originalEvent.pageX - bbox.left;
+        endY = event.originalEvent.pageY - bbox.top;
+
+        if (chart.isInsidePlot(endX - chart.plotLeft, endY - chart.plotTop)) {
+            if (endX - startX == 0) line.attr("d", ['M', startX, 0, 'L', endX, bbox.height]);
+            else {
+                var m = (endY - startY) / (endX - startX);
+                var y1 = startY - (m * startX);
+                var y2 = (m * bbox.width) + y1;
+                line.attr("d", ['M', 0, y1, 'L', bbox.width, y2]);
+            }
+            return false;
+        }
+    }
+}
+
+function touchTrendLineEnd(event) {
+    if (drawing) {
+        finishTrendLineDrawing();
+        return false;
+    }
+}
+
+function touchTrendLineCancel(event) {
+    if (drawing) {
+        finishTrendLineDrawing();
+        return false;
+    }
+}
+
+function finishTrendLineDrawing() {
+    var chart = $("#container").highcharts();
+
+    trendLines.push({
+        "start_date": chart.xAxis[0].toValue(startX),
+            "start_price": chart.yAxis[0].toValue(startY),
+            "end_date": chart.xAxis[0].toValue(endX),
+            "end_price": chart.yAxis[0].toValue(endY),
+            "path": line
+    });
+    drawing = false;
+}
+
+function redrawTrendLines() {
+    var chart = $("#container").highcharts();
+    var bbox = chart.container.getBoundingClientRect();
+
+    trendLines.forEach(function (tl) {
+        var startX = chart.xAxis[0].toPixels(tl.start_date);
+        var startY = chart.yAxis[0].toPixels(tl.start_price);
+        var endX = chart.xAxis[0].toPixels(tl.end_date);
+        var endY = chart.yAxis[0].toPixels(tl.end_price);
+
+        if (endX - startX == 0) {
+            startY = 0;
+            endY = bbox.height;
+        } else {
+            var m = (endY - startY) / (endX - startX);
+            startY = startY - (m * startX);
+            endY = (m * bbox.width) + startY;
+            startX = 0;
+            endX = bbox.width;
+        }
+
+        if (tl.path) tl.path.attr("d", ['M', startX, startY, 'L', endX, endY]);
+        else tl.path = chart.renderer.path(['M', startX, startY, 'L', endX, endY]).attr({
+            'stroke-width': 1,
+            stroke: 'black'
+        }).add();
+    });
+}
+
+		</script>
+	</head>
+	<body>
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<div id="container" style="height: 400px; min-width: 310px"></div>
+
+	</body>
+</html>

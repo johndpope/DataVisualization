@@ -1,0 +1,108 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Using Highstock</title>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript">
+    $(function () {
+        $('#container').highcharts({
+            chart: {
+                type: 'columnrange',
+                animation: false
+            },
+
+            xAxis: {
+                categories: ['Jan', 'Feb', 'Mar']
+            },
+
+            yAxis: {
+                title: {
+                    text: 'Temperature ( °C )'
+                }
+            },
+
+            tooltip: {
+                valueSuffix: '°C',
+            },
+
+            plotOptions: {
+                columnrange: {
+                        grouping: false,
+                },
+                series: {
+                    point: {
+                        events: {
+                            drag: function (e) {
+                                // Returning false stops the drag and drops. Example:
+                                /*
+                                if (e.newY > 300) {
+                                    this.y = 300;
+                                    return false;
+                                }
+                                */
+                            },
+                            drop: function () {
+                            }
+                        }
+                    }
+                }
+            },
+
+            series: [{
+                type:'column',
+                name:'t1',
+                data:[{x:1,y:2},{x:2,y:54}],
+                draggableY: true,draggableX: true
+        
+            },
+            {
+                name: 'Temperatures',
+                draggableX: true,
+                draggableY: true,
+                cursor: 'move',
+                data: [
+                    [-9.7, 9.4],
+                    [-8.7, 6.5],
+                    [-3.5, 9.4],
+                ]
+            },
+            {
+                name: 'Temperatures2',
+                draggableX: true,
+                draggableY: true,
+                cursor: 'move',
+                data: [
+                    [-29,-19.8],
+                    [-19,-8.7],
+                    [-14,-13.5]
+                ]
+            },{
+                name: 'Temperatures3',
+                draggableX: true,
+                draggableY: true,
+                cursor: 'move',
+                data: [
+                    [-39,-30],
+                    null,
+                    null
+                ]
+            }]
+        });
+
+    });
+		</script>
+</head>
+
+<body>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://rawgithub.com/highslide-software/draggable-points/master/draggable-points.js?1"></script>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    <div id="drag"></div>
+    <div id="drop"></div>
+</body>
+
+</html>

@@ -1,0 +1,516 @@
+
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Using Highstock</title>
+
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript">
+//仿钱龙股票主题 供学习交流、免费使用  by 宽宽 2016-05-15
+//整理中
+$(function () {
+    //数据来源 上海证券交易所 
+    $.getJSON('http://yunhq.sse.com.cn:32041/v1/sh1/dayk/000001?jsoncallback=?',function(data){
+        //	console.log(data);
+        // split the data set into ohlc and volume
+        var ohlc = [],
+            volume = [],
+            maset = [5,10,20,30],
+            ma = [],
+            dataLength = data.kline.length,
+            i = 0;
+        for (i; i < dataLength; i += 1) {
+            var newdate = data.kline[i][0].toString();
+            var myDate = new Date(newdate.substring(0,4)+'-'+newdate.substring(4,6)+'-'+newdate.substring(6)+' 00:00:00');
+            xAxisDate = myDate.getTime();
+            //            console.log(xAxisDate);
+            ohlc.push([
+                // data.kline[i][0], // the date
+                xAxisDate,
+                data.kline[i][1], // open
+                data.kline[i][2], // high
+                data.kline[i][3], // low
+                data.kline[i][4] // close
+            ]);
+            $.each(maset,function(index,value){
+                // console.log(index,value);
+                if(typeof ma['ma'+value] == "undefined"){
+                    ma['ma'+value]=[];
+                }
+                if(typeof ma[value+'total'] == "undefined"){
+                    ma[value+'total']=0;
+                }
+                if(i<value)
+                {
+                    ma[value+'total'] += data.kline[i][4];
+                    ma['ma'+value].push([xAxisDate,null]);
+                } else {
+                    ma[value+'total'] += (data.kline[i][4] - data.kline[i-value][4]);
+                    ma['ma'+value].push([xAxisDate, ma[value+'total']/value]);
+                }                  
+            });
+            var newColor = data.kline[i][4]>data.kline[i][1]?'#a80000':'#00a800';
+            volume.push({x: xAxisDate, 
+                         y: data.kline[i][5],
+                         color: newColor
+                        });
+        }
+        //console.log(ma);                             
+        //导入选项
+        Highcharts.setOptions(Highcharts.option);
+        //导入主题
+        Highcharts.setOptions(Highcharts.theme);
+        $('#container').highcharts('StockChart', {
+            rangeSelector: {
+                enabled: false
+            },
+            exporting: {  					 //  	输出功能，需搭建 export server 暂时关闭
+                enabled: false	,
+            },	
+            legend:{enabled:false},        
+            title: {
+                style: {
+                    color: '#dd54fc',
+                    fontWeight: 'bold'
+                },
+                text: data.code+" 上证指数"
+            },
+            chart: {
+                //renderTo:'container',
+            },
+            navigator: {
+                enabled: true, //false
+                margin: 2,
+                height: 17
+            },
+            xAxis: {
+                startOnTick: false,//true,//
+                endOnTick:true,
+                minPadding:0,
+                maxPadding:0,
+                ordinal: true //false
+            },
+            yAxis: [{
+                minorTickInterval: 'auto',
+                showLastLabel: true,
+                showFirstLabel: false,
+                labels: {
+                    style:
+                    {"color":"#FCFFa5","fontWeight":"bold"},
+                    align: 'right',
+                    x: -3
+                },
+                title: 'ohlc',
+                height: '61.8%',
+                lineWidth: 0,
+                opposite: false //true,
+            },
+                    {	
+                        minorTickInterval: 'auto',
+                        labels: {
+                            style:
+                            {"color":"#FCFFa5","fontWeight":"bold"},
+                            align: 'right',
+                            x: -3
+                        },
+                        title: {
+                            text: ''
+                        },
+                        /*Volume*/
+                        top: '61.8%',
+                        height: '38.2%',
+                        offset: 0,
+                        lineWidth: 0,
+                        opposite: false
+                    }],
+            series: [{
+                type:'candlestick',
+                name:'价',
+                data: ohlc,
+                dataGrouping: {
+                    enables:false
+                },            
+                yAxis: 0,
+                id:'c'
+            },{
+                type:'line',
+                name:'ma5' ,
+                data: ma['ma5'] ,
+                color: "#fcfc54",
+                yAxis: 0
+            },{
+                type:'line',
+                name:'ma10' ,
+                data: ma['ma10'] ,
+                color: "#dd54fc",
+                yAxis: 0
+            },{
+                type:'line',
+                name:'ma20' ,
+                data: ma['ma20'] ,
+                color: "#54fc54",
+                yAxis: 0
+            },{
+                type:'line',
+                name:'ma30' ,
+                data: ma['ma30'] ,
+                color: "#3f54fc",
+                yAxis: 0
+            },
+                     {
+                         animation: false,
+                         type: 'column',
+                         //pointWidth: 3,
+                         name: '量',
+                         data: volume,
+                         dataGrouping: {
+                             enables:false
+                         },
+                         yAxis: 1
+                     }]
+        },function(c){
+            var _credits = c.options.credits;
+            c.credits.on("click",function(){
+                if(_credits.enabled && _credits.href){
+                    //多选或者更多功能、样式，建议使用Model
+                    if(window.confirm('将要访问 hcharts.cn?')) {
+                        window.open(_credits.href);
+                    } else {
+                        // back
+                    }
+                }
+            });
+        });
+    } );
+});
+
+
+		</script>
+	</head>
+	<body>
+<script src="http://code.highcharts.com/stock/highstock.js"></script>
+<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
+
+<script src="http://github.highcharts.com/rambera/highstock.js"></script>
+<script src="http://github.highcharts.com/rambera/highcharts-more.js"></script>
+<script src="http://github.highcharts.com/rambera/modules/exporting.js"></script>
+
+<script src="http://cdn.hcharts.cn/libs/underscore/underscore.js"></script>
+<div id="container" style="min-width:1100px;height:800px"></div>
+<script>
+    Highcharts.option = ({
+        global: {
+            useUTC:  false 
+        },
+        lang: { 						//		汉化界面
+            months: ['一月', '二月', '三月', '四月', '五月', '六月',  '七月', '八月', '九月', '十月', '十一', '十二月'],
+            shortMonths:['一月', '二月', '三月', '四月', '五月', '六月',  '七月', '八月', '九月', '十月', '十一', '十二月'],
+            weekdays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+        },
+        navigator: {
+            enabled: false //true //
+        },        scrollbar: {
+            enabled: false //true //
+        },
+        rangeSelector: {
+            enabled: false
+        },
+        exporting: {  					 //  	输出功能，需搭建 export server 暂时关闭
+            enabled: false	,
+        },	
+        legend:{enabled:false},
+        plotOptions: {
+            column: {
+                grouping: false,
+                shadow: false,
+                borderWidth: 0
+            },
+            columnrange: {
+                grouping: false,
+                shadow: false,
+                borderWidth: 0
+            },
+            arearange:{
+                fillOpacity: 0.2,
+            } ,       
+            line: {            //图表线宽 ，spline 另一种线
+                lineWidth: 1.3,
+                fillOpacity: 1.1,
+                marker: {
+                    enabled: false,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            radius: 1
+                        }
+                    }
+                },
+                shadow: false
+            },
+            series: {		        
+                animation: {
+                    enabled: false,
+                    duration: 0 
+                }
+            }, 
+            candlestick: {
+                lineColor:'green',
+                color: 'green',
+                upColor: 'red',
+                upLineColor: 'red'
+            }
+        }			
+    });
+</script>
+<script>
+    Highcharts.theme = {
+        //fcfc54 黄 dd54fc 粉 54fc54 嫩绿 3f54fc 深蓝 a8a8a8 灰 00a800 老绿  a80000 深红 fcfcfc 白 54fcfc 青 fc54fc 紫 
+        colors: ["#fcfc54","#dd54fc","#54fc54","#3f54fc","#a8a8a8","#00a800","#a80000","#fcfcfc","#54fcfc","#fc54fc" ],
+        //colors: ["#514F78", "#42A07B", "#9B5E4A", "#72727F", "#1F949A", "#82914E", "#86777F", "#42A07B"],
+        chart: {
+            className: 'stock-qianlong',
+            borderWidth: 0,
+            plotShadow: false , //true,
+            //plotBackgroundImage: 'http://www.highcharts.com/demo/gfx/skies.jpg',
+            plotBorderColor: '#CC0000',
+            plotBorderWidth: 3,
+            plotBackgroundColor: '#000000',
+            backgroundColor: '#000000',
+            spacingTop: 10,
+            spacingBottom: 15,
+        },
+        title: {
+            text: null,
+            style: {
+                color: '#3E576F',
+                font: '16px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+            }
+        },
+        subtitle: {
+            style: {
+                color: '#6D869F',
+                font: '12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+            }
+        },
+        tooltip:{
+            distance: 140,
+            //	positioner: function () {
+            //   return { x: 80, y: 15 };
+            //    },
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            shared:true,
+            useHTML: true,
+            headerFormat: '<small>{point.key}</small><table width="100%">',
+            pointFormat: '<tr><td style="color: {series.color};font-size:14px;">\u25CF</td style="text-align: left"><td>{series.name}: </td>' + '<td style="text-align: right"><b>{point.y} </b></td></tr>',
+            footerFormat: '</table>',
+            dateTimeLabelFormats: {minute:'%Y-%m-%d %H:%M'},
+            crosshairs:[true,true],
+            followPointer:true, //false //
+            valueDecimals: 2        //,       			positioner: function () {                return { x: 10, y: 35 };            }
+        },
+        credits: {  					 
+            enabled:true  ,
+            href:"http://www.hcharts.cn",
+            position: {
+                align: 'left',
+                x: 10,
+                verticalAlign: 'bottom',
+                y: -2
+            },
+            style: {  			//	 
+                cursor: 'pointer',
+                color: '#009090',
+                fontSize: '9px'
+            },
+            text: ['感谢 hcharts.cn  &  highcharts.com 提供图表支持']
+        }, 
+        plotOptions: {
+            arearange:{
+                fillOpacity: 0.2,
+            } ,       
+            line: {            
+                lineWidth: 1.3,
+                fillOpacity: 1.1,
+                marker: {
+                    enabled: false,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            radius: 1
+                        }
+                    }
+                },
+                shadow: false
+            },
+            series: {		        
+                animation: {
+                    enabled: false
+                    //duration: 500
+                }
+            },
+            candlestick: {
+                lineColor:'green',
+                color: 'green',//'#00a800',
+                upColor: '#a80000',
+                upLineColor: '#a80000'
+            }
+        },
+        xAxis: {
+            gridLineWidth: 1.5,
+            gridLineColor: 'rgba(255, 0, 0, .5)',
+            lineColor: '#a80000',
+            //tickColor: '#C0D0E0',
+            showFirstLabel: true,
+            showLastLabel: true,
+            startOnTick: false,//true,//
+            endOnTick:false,
+            minPadding:0,
+            maxPadding:0,
+            tickWidth: 2,
+            tickColor: '#a80000',
+            tickPosition: 'outside',
+            type: 'datetime',
+            dateTimeLabelFormats:{hour: '%H:%M',day: '%e. %b',month: '%b \'%y',	year: '%Y'},
+            lineWidth: 0,
+            offset: 1,
+            labels: {
+                style: {color:"#fcfc54"}
+            },
+            title: {
+                style: {
+                    color: '#666',
+                    font: '12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+                }
+            }
+        },
+        yAxis: {
+            gridLineColor: 'rgba(255, 0, 0, .5)',
+            minorGridLineColor: 'rgba(255,0,0,0.3)',
+            title: {
+                text: null,
+                style: {
+                    color: '#666',
+                    font: '12px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
+                }
+            }
+        },
+        legend: {
+            itemStyle: {
+                font: '9pt Trebuchet MS, Verdana, sans-serif',
+                color: '#3E576F'
+            },
+            itemHoverStyle: {
+                color: 'black'
+            },
+            itemHiddenStyle: {
+                color: 'silver'
+            }
+        },
+        labels: {
+            style: {
+                color: '#3E576F'
+            }
+        }
+    };
+</script>
+<script>
+    /**
+ * Highcharts X-range series plugin
+ * 此部分为插件，可以另存为js文件，引用之后即可按照正常的线类型使用，type: xrange 即可
+ */
+    (function(H) {
+        var defaultPlotOptions = H.getOptions().plotOptions,
+            columnType = H.seriesTypes.column,
+            each = H.each,
+            extendClass = H.extendClass,
+            Point = H.Point;
+        defaultPlotOptions.xrange = H.merge(defaultPlotOptions.column, {
+            tooltip: {
+                pointFormat: '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>{point.yCategory}</b><br/>'
+            }
+        });/**/
+        H.seriesTypes.xrange = H.extendClass(columnType, {
+            pointClass: extendClass(Point, {
+                // Add x2 and yCategory to the available properties for tooltip formats
+                getLabelConfig: function() {
+                    var cfg = Point.prototype.getLabelConfig.call(this);
+                    cfg.x2 = this.x2;
+                    cfg.yCategory = this.yCategory = this.series.yAxis.categories && this.series.yAxis.categories[this.y];
+                    return cfg;
+                }
+            }),
+            /* */
+            type: 'xrange',
+            parallelArrays: ['x', 'x2', 'y'],
+            requireSorting: false,
+            animate: H.seriesTypes.line.prototype.animate,
+            /**
+         * Borrow the column series metrics, but with swapped axes. This gives free access
+         * to features like groupPadding, grouping, pointWidth etc.
+         */
+            getColumnMetrics: function() {
+                var metrics,
+                    chart = this.chart;
+                function swapAxes() {
+                    each(chart.series, function(s) {
+                        var xAxis = s.xAxis;
+                        s.xAxis = s.yAxis;
+                        s.yAxis = xAxis;
+                    });
+                }
+                swapAxes();
+                this.yAxis.closestPointRange = 1;
+                metrics = columnType.prototype.getColumnMetrics.call(this);
+                swapAxes();
+                return metrics;
+            },
+            translate: function() {
+                columnType.prototype.translate.apply(this, arguments);
+                var series = this,
+                    xAxis = series.xAxis,
+                    metrics = series.columnMetrics;
+                H.each(series.points, function(point) {
+                    var barWidth = xAxis.translate(H.pick(point.x2, point.x + (point.len || 0))) - point.plotX;
+                    point.shapeArgs = {
+                        x: point.plotX,
+                        y: point.plotY + metrics.offset,
+                        width: barWidth,
+                        height: metrics.width
+                    };
+                    point.tooltipPos[0] += barWidth / 4;
+                    point.tooltipPos[1] -= metrics.width / 2;
+                });
+            }
+        });
+        /**
+     * Max x2 should be considered in xAxis extremes
+     */
+        H.wrap(H.Axis.prototype, 'getSeriesExtremes', function(proceed) {
+            var axis = this,
+                dataMax = Number.MIN_VALUE;
+            proceed.call(this);
+            if (this.isXAxis) {
+                each(this.series, function(series) {
+                    each(series.x2Data || [], function(val) {
+                        if (val > dataMax) {
+                            dataMax = val;
+                        }
+                    });
+                });
+                // 这个会影响rangeSelector的效果, 此例中屏蔽
+                /*
+            if (dataMax > Number.MIN_VALUE) {
+                axis.dataMax = dataMax;
+            }
+            */
+            }
+        });
+    }(Highcharts));
+    /**
+ * 插件部分结束
+ */
+</script>
+
+	</body>
+</html>

@@ -1,0 +1,50 @@
+
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Using Highstock</title>
+
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript">
+$(function() {
+     addPoint = function(){
+    var max = 1000;
+    var min = 300;
+    var value =  Math.floor(Math.random() * (max - min + 1)) + min;
+    var len = chart.series[0].data.length;
+    chart.series[0].addPoint([(new Date()).getTime(), value], len < 99);
+}
+
+$('#container').highcharts({
+         chart: {
+	             type: 'line',
+	        },
+	        xAxis: {
+	            type: 'datetime',
+                minTickInterval: 1000 * 60, //one minute
+	            minRange:1000 * 60 * 5,
+	            maxRange:1000 * 60 * 5
+	        }
+});
+
+var chart = $('#container').highcharts();
+
+chart.addSeries({"name": "example","data":[[+new Date(), null]]});
+
+setInterval(addPoint,1000);
+
+});
+
+
+		</script>
+	</head>
+	<body>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+
+<div id="container" style="min-width: 300px; height: 300px; margin: 1em"></div>
+
+
+	</body>
+</html>

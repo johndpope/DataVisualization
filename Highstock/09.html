@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Using Highstock</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        var options = {
+            chart: {
+                events: {
+                    load: function () {
+                        chart = this;
+                        setInterval(function () {
+                                setData(chart.series[0],
+                                    (new Date()).getTime(),
+                                    Math.random(),
+                                    Math.random() - 0.2,//high
+                                    Math.random() + 0.4, //low
+                                    Math.random() - 0.4, //close
+                                    5);
+                        }, 1000);
+                    }
+                }
+            },
+
+            series: [{
+                    type: 'candlestick',
+                    dataGrouping: {
+                        force: true,
+                        units: [['seconds', [5]]]
+                    },
+                    data: (function () {
+                        var data = [],
+                            time = (new Date()).getTime(),
+                            i;
+                        for (i = -20; i <= 0; i += 5) {
+                            data.push(
+                                {
+                                    x: time + i * 1000,
+                                    open: Math.random(), //open
+                                    high: Math.random() - 0.2,//high
+                                    low: Math.random() + 0.4,//low
+                                    close: Math.random() + 0.4//close
+                                });
+                        }
+                        return data;
+                    })(),
+                }
+            ]
+        };
+
+        $(function () {
+            $(document).ready(function () {
+                $('#chartdiv').highcharts(options);
+            });
+        });
+
+        function setData(series, x, y, high, low, close, period) {
+            var temp = series.data.slice(-1)[0];
+            x = temp.x;
+            if ((period * 1000) <= (new Date()).getTime() - x) {
+
+                x = (new Date()).getTime();
+                series.addPoint({
+                    x: x,
+                    y: y,
+                    high: high,
+                    low: low,
+                    close: close,
+                }, true, false, true);
+            } else {
+                newValue = [x,
+                    y,
+                    high,//high
+                    low, //low
+                    close //close
+                ];
+                temp.update(newValue, true);
+                series.chart.redraw(false);
+            }
+        }
+		</script>
+</head>
+
+<body>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <div id="chartdiv"></div>
+</body>
+
+</html>

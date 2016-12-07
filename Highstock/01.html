@@ -1,0 +1,682 @@
+
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Using Highstock</title>
+
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript">
+$(function() {
+         var chart;
+
+    var period  = 5;
+
+    var setInter  = '';
+
+    var TypeLine = 'candlestick'; //'candlestick'
+
+    //это время конец графика
+    var end = (new Date()).getTime()+100000;
+
+    //стиль стиль ценой линии
+    var Priceline =  {
+        color: '#FF0000',
+        width: 2,
+        value: 0.4,
+        dashStyle: 'longdashdot',
+        label: {
+            text: '<div class="price">5</div>', // Content of the label.
+            align: 'right', // Positioning of the label.
+        }
+    };
+
+    //экспирация
+    var stepExpiration = 10000; //время экперации
+
+    var stepLine = 5000; //время экперации
+
+    var tiemExp = (new Date()).getTime() + stepExpiration;
+
+    var minRange = 1000;
+
+    var ExpLine = {
+        color: '#FF0000',
+        width: 2,
+        value: tiemExp,
+        label: {
+            text: 'Время для экперации'
+        }
+    };
+
+
+
+    var BeforeExpLine = {
+        color: '#FF0000',
+        width: 2,
+        dashStyle: 'longdashdot',
+        value: tiemExp  -  stepLine,
+        label: {
+            text: 'Время для закуки'
+        }
+    };
+
+    var typesLine = ['line', 'candlestick'];
+
+    //все значения
+    var AllData ={
+        line : [],
+        candlestick: []
+    };
+
+    //настройки
+    var options = {
+       // ignoreHiddenSeries: true,
+        exporting: {
+            enabled: false,
+            buttons: {
+                customButton: {
+                    x: -62,
+                    onclick: function () {
+                        alert('Clicked');
+                    },
+                    symbol: 'circle'
+                }
+            }
+        },
+
+
+        /* mapNavigation: {
+         enableMouseWheelZoom: true
+         },*/
+        chart: {
+            type: 'line', //делает его овальным
+            panning: true,
+            animation: Highcharts.svg, // don't animate in old IE
+            marginRight: 10,
+            events: {
+                load: function() {
+
+                    // set up the updating of the chart each second
+                    var series  = this.series[0],
+                        len     = series.data.length;
+
+                    this.addSeries({
+                        id: 'end point',
+                        type: 'scatter',
+                        marker: {
+                            enabled:true,
+                            symbol:'circle',
+                            radius:4,
+                            fillColor:'white',
+                            lineColor: 'black',
+                            lineWidth:2
+                        },
+                        data: [[
+                            series.data[len - 1].x,
+                            series.data[len - 1].y
+                        ]]
+                    });
+
+                    var series2 = this.get('end point');
+
+                    //вертикальная линия
+                    var  yAxis =  this.yAxis[0];
+
+                    //горизнтальная линия
+                    var  xAxis =  this.xAxis[0];
+
+
+
+                    chart = this;
+
+                    setInter = setInterval(function() {
+                        var x = (new Date()).getTime(), // current time
+                            y = Math.random();
+
+
+                            series.addPoint( {
+                                x: x,
+                                y: y
+                            }
+                             , true, false);
+
+                            len = series.data.length;
+                            series2.data[0].update([x,y]);
+
+
+                        //1 сек график
+                        if(true) {
+
+                            chart.series[1].addPoint([
+                                x,
+                                y,
+                                Math.random()-0.2,
+                                Math.random()+0.4,
+                                Math.random()-0.4
+                            ], true, false);
+
+                          }
+
+                        //5 сек график
+                        if(true) {
+
+
+                            getTime(x, 5);
+                          setData(chart.series[2],
+                                x,
+                                y,
+                                Math.random()-0.2,//high
+                                Math.random()+0.4, //low
+                                Math.random()-0.4, //close
+                                5, //periud
+                                1);
+                        }
+
+
+                        //обновляем ценовую линию
+                        if(true) {
+                            plotBand = yAxis.plotLinesAndBands[0];
+                            $.extend(plotBand.options, {
+                                value: y,//меняем положение линии
+                                label: {//устанавливаем цена справо
+                                    text: '<div class="price">'+y+'</div>',
+                                    align: 'right'
+                                }
+                            }  );
+
+
+                            plotBand.render();
+
+
+                            yAxis.update({
+                                plotLines: [
+                                    //PRiceLine выше
+                                    Object.assign({}, plotBand.options,
+                                        {
+
+                                            label: {//устанавливаем цена справо
+                                                text: '<div class="price">'+y+'</div>',
+                                                align: 'right'
+                                            }
+                                        }
+                                    )
+
+                                ]
+                            });
+
+
+                        }
+
+
+                        var max = (new Date()).getTime() + 50000;
+                        var min = (new Date()).getTime() - 30000;
+                        var t = false;
+
+                        if((xAxis.max  - tiemExp) <  1000 ) {
+
+                            t = true;
+
+                            var max = (new Date()).getTime() + 90000;
+                            var min = (new Date()).getTime() - 20000;
+                        }
+
+
+
+
+
+                        //рисуем линии экперации
+                        if(tiemExp <= x || t ) {
+
+                            if(t) {
+
+                                console.log(1121)
+                            }
+
+                            tiemExp = (new Date()).getTime() + stepExpiration;
+
+                            //Отключаем движение линии после скрола
+                            var xAxisExtremes = chart.xAxis[0].getExtremes();
+                            chart.xAxis[0].setExtremes((new Date()).getTime() - 20000, (new Date()).getTime() + 20000);
+
+
+
+                            //обновяем блок экперации
+                            xAxis.update({
+                                type: 'datetime',
+                                max: max,
+                                min:min,
+                              //  minRange: minRange,
+                                plotLines: [
+                                    //exp линия
+                                    Object.assign({}, ExpLine,
+                                        {
+                                            value: tiemExp //
+                                        }
+                                    ),
+                                    //время когда надо покцупать
+                                    Object.assign({}, BeforeExpLine,
+                                        {
+                                            value: tiemExp - stepLine
+                                        }
+                                    ),
+
+                                ]
+                            });
+
+                            chart.redraw();
+                        }
+
+                    }, 1000);
+
+
+
+                }
+            }
+        },
+
+        //загаловок
+        title: {
+            text: 'Live random data'
+        },
+
+        //горизонтальная линия (временая шкала)
+        xAxis: {
+            type: 'datetime',
+            tickPixelInterval: 150,
+            maxPadding :1.5,
+          //  minRange: minRange,
+            max: end,
+            //линии экп
+            plotLines: [ExpLine, BeforeExpLine]
+        },
+
+        //вертикальная линия (школа цен)
+        yAxis: [{
+            lineWidth: 1, //линия по которой расположенны значения
+            opposite: true, //side : false-left, true-right
+            labels: { //значения
+                align: 'right', //право - лево отнасильно линии lineWidth
+                x: 0 //положение по x
+            },
+            //линия цены
+            plotLines: [Priceline],
+
+
+        }],
+
+        //когда наводишь на точку
+        tooltip: {
+            formatter: function() {
+                return '<b>'+ this.series.name +'</b><br/>'+
+                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) +'<br/>'+
+                    Highcharts.numberFormat(this.y, 2);
+            }
+        },
+        legend: {
+            enabled: false
+        },
+
+        plotOptions: {
+            candlestick: {
+                lineColor: '#2f7ed8',
+                upLineColor: 'silver', // docs
+                upColor: 'silver'
+            }
+        },
+
+        //линии и свечия
+        series: [
+            //линия
+            {
+                name: 'Random data',
+                type : 'line',
+                enableMouseTracking:false,
+                marker: {
+                    enabled: false
+                },
+
+                data: (function() {
+
+                    // generate an array of random data
+                    var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+
+                    for (i = -20; i <= 0; i++) {
+
+
+                        data.push(
+                            {
+                                x: time + i * 1000,
+                                y:  Math.random(), //open
+
+                            });
+
+                    }
+
+                    return data;
+                })(),
+                visible: true
+            },
+
+            //свеча 1  сек
+            {
+
+                name: 'Random data',
+                type : 'candlestick',
+                enableMouseTracking:false,
+
+                marker: {
+                    enabled: false
+                },
+                pointWidth: 10,
+                data: (function() {
+
+                    // generate an array of random data
+                    var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+
+
+                    for (i = -20; i <= 0; i++) {
+
+
+                        data.push(
+                            {
+                                x: time + i*1000,
+                                open:  Math.random(), //open
+                                high: Math.random()-0.2,//high
+                                low: Math.random()+0.4,//low
+                                close: Math.random()+0.4//close
+                            });
+
+
+                    }
+
+                    return data;
+                })(),
+                visible: false
+            },
+
+            //свеча 5 сек
+            {
+            name: 'Random data',
+            type : 'candlestick',
+            enableMouseTracking:false,
+
+            marker: {
+                enabled: false
+            },
+                dataGrouping: {
+                    enabled: true,
+                    force: true,
+                    units: [ ['seconds', [5]] ]
+                },
+                pointRange: 5 * 1000,
+                pointPadding: 0,
+                groupPadding: 0,
+            data: (function() {
+
+                // generate an array of random data
+                var data = [],
+                    time = (new Date()).getTime(),
+                    i;
+
+              //  time = time.toString().substr(0, 10);
+
+              //  time = time +'000';
+             //   time = parseInt(time );
+                for (i = -20; i <= 0; i+=5) {
+
+
+                    data.push(
+                        {
+                            x: time + i*1000,
+                            open:  Math.random(), //open
+                            high: Math.random()-0.2,//high
+                            low: Math.random()+0.4,//low
+                            close: Math.random()+0.4//close
+                        });
+
+
+                }
+
+                return data;
+            })(),
+                visible: false
+        }
+           ]
+    };
+
+
+
+    $(function () {
+        $(document).ready(function() {
+
+            Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                }
+            });
+
+            $('#chartdiv').highcharts(options);
+
+            //меняем тип линии свеча/ линия
+
+            $('#typeLine').click(function() {
+
+                hideSeries();
+                 chart.series[1].setVisible(true, false);
+
+                minRange = 1000;
+
+                if(minRange) {
+
+                    xAxis = chart.xAxis[0];
+                    xAxis.update({ minRange: minRange});
+                }
+
+            });
+
+
+
+            //show 1 sec series
+            $('#period1').click(function() {
+
+                hideSeries();
+                chart.series[1].setVisible(true, false);
+
+                minRange = 1000;
+
+                if(minRange) {
+
+                    xAxis = chart.xAxis[0];
+                    xAxis.update({ minRange: minRange});
+                }
+
+            });
+
+            //show 5 sec series
+            $('#period5').click(function() {
+
+                hideSeries();
+                chart.series[2].setVisible(true, false);
+
+                minRange = 100000;
+
+                if(minRange) {
+
+                   // xAxis = chart.xAxis[0];
+                   // xAxis.update({ minRange: minRange});
+                }
+            });
+
+            var lastX;
+            var mouseDown;
+
+            $('#chartdiv').mousedown(function() {
+                mouseDown = 1;
+            })
+
+            $('#chartdiv').mouseup(function() {
+                mouseDown = 0;
+            })
+
+            $('#chartdiv').mousemove(function(e) {
+                if(chart !== undefined){
+                    if (mouseDown == 1) {
+                        if (e.pageX > lastX) {
+                            var diff = (e.pageX - lastX) * 20;
+                            var xExtremes = chart.xAxis[0].getExtremes();
+                            chart.xAxis[0].setExtremes(xExtremes.min - diff, xExtremes.max - diff);
+                        }
+                        else if (e.pageX < lastX) {
+                            var diff = (lastX - e.pageX) * 20;
+                            var xExtremes = chart.xAxis[0].getExtremes();
+                            chart.xAxis[0].setExtremes(xExtremes.min + diff, xExtremes.max + diff);
+                        }
+
+                    }
+                    lastX = e.pageX;
+                }
+            });
+            $('#chartdiv').on('mousewheel', function(event) {
+
+                var xAxisExtremes = chart.xAxis[0].getExtremes();
+                //var diff = (xAxisExtremes.dataMax - xAxisExtremes.dataMin) / 20 ;
+                var diff = 2000 ;
+
+
+
+                if (event.originalEvent.wheelDelta >= 0) {
+                    //mouse up
+                    //move to left
+
+                    chart.xAxis[0].setExtremes(xAxisExtremes.min - diff, xAxisExtremes.max - diff);
+
+                }
+                else {
+                    //mouse down
+                    //move to right
+
+                    chart.xAxis[0].setExtremes(xAxisExtremes.min + diff, xAxisExtremes.max + diff);
+
+                }
+                lastX = event.pageX;
+            });
+        });
+
+    });
+
+
+    /// тип линии
+    function getTypeLine(x,  y,  high, low, close) {
+
+
+        var res = {};
+        //если простая(прямая)
+        if(TypeLine == 'line') {
+
+            res =  {
+                x: x,
+                y: y
+            }
+
+        }
+        // если свечи
+        else {
+
+
+            res =  {
+                x: x,
+                open: y,
+                high: high,
+                low: low,
+                close: close
+            }
+        }
+
+
+        return res;
+    }
+
+    //candlestick
+    function setData(series, x, y, high, low, close, period, type) {
+
+        var temp =   series.data.slice(-1)[0];
+        x = temp.x;
+
+        if((period * 1000) <= (new Date()).getTime() - x ) {
+
+            x = (new Date()).getTime();
+            series.addPoint({
+                x: x,
+                y: y,
+                high:high,
+                low:low,
+                close:close,
+            }, true, false, true);
+        } else {
+
+            newValue = [x,
+                y,
+                high,//high
+                low, //low
+                close //close
+            ];
+            temp.update(newValue, true);
+            series.chart.redraw(false);
+        }
+
+    }
+
+    //hide all Series
+    function hideSeries() {
+
+
+        for(i =0 ; i <=chart.series.length; i++) {
+
+            if(typeof  chart.series[i] != 'undefined') {
+
+
+                chart.series[i].setVisible(false, false);
+            }
+
+        }
+    }
+
+    function getTime(x) {
+
+        x = x.toString().substr(0, 10);
+
+        x = x +'000';
+        x = parseInt(x );
+        return x;
+        
+    }
+
+});
+
+
+		</script>
+	</head>
+	<body>
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/maps/modules/map.js"></script>
+<div  id="chartdiv">
+
+			</div>
+
+			<div class="buttons_block">
+				<input value="candlestick" type="button" id="typeLine"/>
+				<!-- input value="1с" type="button" id="period1"/ -->
+				<input value="5с" type="button" id="period5"/>
+				<!-- input value="15с" type="button" id="period"/>
+				<input value="30с" type="button" id="period"/ -->
+
+			</div>
+
+	</body>
+</html>

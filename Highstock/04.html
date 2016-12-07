@@ -1,0 +1,78 @@
+
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Using Highstock</title>
+
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript">
+var chart1;
+var chartOneMin;
+var chartOneMax;
+$(function () {
+    // create the chart
+    chart1 = new Highcharts.Chart({
+        chart: {           
+            //zoomType: 'x',
+            renderTo:'container'
+        },
+        credits: {
+            text: 'www.stepday.com',
+            href: 'http://www.stepday.com'
+        },
+        xAxis: {
+        },
+        series: [{
+            data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4].reverse()
+        }]
+    });
+    //获取图表1的xAxis的最大和最小值
+    chartOneMin = chart1.xAxis[0].min;
+    chartOneMax = chart1.xAxis[0].max;
+    
+     $('#container2').highcharts({
+        chart: {
+            events: {
+                selection: function(event) {
+                    if (event.xAxis) {                       
+                        debugger
+                        chart1.xAxis[0].update({
+                            min:event.xAxis[0].min,
+                            max:event.xAxis[0].max
+                        });
+                    } else {
+                        //还原图表1的最大最小值
+                        chart1.xAxis[0].update({
+                            min:chartOneMin,
+                            max:chartOneMax
+                        });
+                    }
+                }
+            },
+            zoomType: 'x'
+        },
+         credits: {
+            text: 'www.stepday.com',
+            href: 'http://www.stepday.com'
+        },
+        xAxis: {
+        },
+
+        series: [{
+            data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4].reverse()
+        }]
+    });
+});
+
+
+		</script>
+	</head>
+	<body>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+
+<div id="container" style="height: 400px"></div>
+<div id="container2" style="height: 400px"></div>
+
+	</body>
+</html>
