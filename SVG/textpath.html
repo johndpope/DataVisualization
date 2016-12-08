@@ -1,38 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1220" height="1220">
 
-    <text x="20" y="10">
-        <tspan>tspan line 1</tspan>
-        <tspan>tspan line 2</tspan>
-    </text>
+    <defs>
+        <path id="myTextPath" d="M75,20 a1,1 0 0,0 300,0" />
+    </defs>
 
-    <text x="220" y="10">
-        <tspan>tspan line 1</tspan>
-        <tspan dy="10">tspan line 2</tspan>
-        <tspan dy="5 10 20">123</tspan>
-    </text>
-
-    <text x="420" y="10">
-        <tspan>tspan line 1</tspan>
-        <tspan dx="30" dy="10">tspan line 2</tspan>
-        <tspan dx="5 10 20">123</tspan>
-    </text>
-
-    <text y="110">
-        <tspan x="10">tspan line 1</tspan>
-        <tspan x="10" dy="15">tspan line 2</tspan>
-        <tspan x="10" dy="15">tspan line 3</tspan>
-    </text>
-
-    <text y="210">
-        这是一个被
-        <tspan style="font-weight: bold;">加粗</tspan> 的文字。
-    </text>
-
-    <text x="10" y="300">
-        这是一个tspan元素的
-        <tspan style="baseline-shift: super;">上标</tspan>
-        和
-        <tspan style="baseline-shift: sub;">下标</tspan> 混合的文本串效果。
+    <text x="10" y="100" style="stroke: #000000;">
+        <textPath xlink:href="#myTextPath">
+            Text along a curved path...
+        </textPath>
     </text>
 
 </svg>
