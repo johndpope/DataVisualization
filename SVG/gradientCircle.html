@@ -1,0 +1,61 @@
+<svg id="colourwheel" xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="-10 -10 220 220">
+    <g id="paths" fill="none" stroke-width="20" transform="translate(100,100)">
+    </g>
+</svg>
+
+<script>
+    function makeColourWheel(numSegments) {
+        var svgns = xmlns = "http://www.w3.org/2000/svg";
+        var paths = document.getElementById("paths");
+
+        var radius = 55;
+        var stepAngle = 2 * Math.PI / numSegments;
+
+        var lastX = 0;
+        var lastY = -radius;
+        var lastAngle = 0;
+
+        for (var i = 1; i <= numSegments; i++) {
+            var angle = i * stepAngle;
+            // Calculate this arc end point
+            var x = radius * Math.sin(angle);
+            var y = -radius * Math.cos(angle);
+            // Create a path element
+            var arc = document.createElementNS(svgns, "path");
+            arc.setAttribute("d", "M " + lastX.toFixed(3) + "," + lastY.toFixed(3)
+                + " A 55,55 0 0,1 " + x.toFixed(3) + "," + y.toFixed(3));
+            arc.setAttribute("stroke", "url(#wheelseg" + i + ")");
+            // Append it to our SVG
+            paths.appendChild(arc);
+
+            // Create a gradient for this segment
+            var grad = document.createElementNS(svgns, "linearGradient");
+            grad.setAttribute("id", "wheelseg" + i);
+            grad.setAttribute("gradientUnits", "userSpaceOnUse");
+            grad.setAttribute("x1", lastX.toFixed(3));
+            grad.setAttribute("y1", lastY.toFixed(3));
+            grad.setAttribute("x2", x.toFixed(3));
+            grad.setAttribute("y2", y.toFixed(3));
+            // Make the 0% stop for this gradient
+            var stop = document.createElementNS(svgns, "stop");
+            stop.setAttribute("offset", "0%");
+            hue = Math.round(lastAngle * 360 / Math.PI / 2);
+            stop.setAttribute("stop-color", "hsl(" + hue + ",100%,50%)");
+            grad.appendChild(stop);
+            // Make the 100% stop for this gradient
+            stop = document.createElementNS(svgns, "stop");
+            stop.setAttribute("offset", "100%");
+            hue = Math.round(angle * 360 / Math.PI / 2);
+            stop.setAttribute("stop-color", "hsl(" + hue + ",100%,50%)");
+            grad.appendChild(stop);
+            // Add the gradient to the SVG
+            paths.appendChild(grad);
+            // Update lastx/y
+            lastX = x;
+            lastY = y;
+            lastAngle = angle;
+        }
+    }
+    makeColourWheel(10);
+
+</script>
