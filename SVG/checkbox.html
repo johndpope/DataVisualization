@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+    #c1:hover {
+        cursor: pointer;
+    }
+
+    #c1 .checkboxBorder {
+        opacity: 0;
+    }
+
+</style>
+</head>
+
+<body>
+
+    <svg id='c1' width='22' height='22'>
+        <path class='checkboxBorder' d='M 6 11 L 11 15 16 6' style="stroke:#006600;" fill='none'/>
+        <rect x="1" y="1" height="20" width="20" rx="5" ry="5" style="stroke:#006600; fill: none"/>
+    </svg>
+
+</body>
+<script>
+    var checkboxId = document.getElementById('c1');
+    var tranparentId = document.querySelector("#c1 .checkboxBorder");
+    var checked = false;
+    checkboxId.onclick = function () {
+        tranparentId.style.opacity ^= 1;
+        checked = !checked;
+    }
+</script>
+
+</html>
