@@ -1,0 +1,68 @@
+<html>
+
+<body>
+    <div id="graph_container" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+<script src="./node_modules/socket.io-client/dist/socket.io.min.js"></script>
+<script src="./node_modules/highcharts/highcharts.js"></script>
+<script>
+    window.onload = function () {
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        var graph = new Highcharts.Chart({
+            title: { text: 'Real Time Samples' },
+            xAxis: {
+                type: 'datetime',
+                tickPixelInterval: 100
+            },
+            yAxis: {
+                title: { text: 'Samples' },
+                tickInterval: 10,
+                min: 0,
+                max: 100
+            },
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.series.name + '</b><br/>'
+                        + '[ ' + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x)
+                        + ' , '
+                        + this.y + ' ]';
+                }
+            },
+            chart: {
+                type: 'spline',
+                renderTo: 'graph_container',
+                events: {
+                    load: function () {
+                        var series = this.series[0];
+                        var socket = io.connect('http://localhost:3131');
+                        socket.on('sample', function (sample) {
+                            series.addPoint([sample.x, sample.y], true, true);
+                        });
+                    }
+                }
+            },
+            series: [{
+                name: 'Random data',
+                data: (function () {
+                    var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+                    for (i = -19; i <= 0; i++) {
+                        data.push({
+                            x: time + (i * 1000),
+                            y: 0
+                        });
+                    }
+                    return data;
+                })()
+            }]
+        });
+    }
+</script>
+</body>
+
+</html>
