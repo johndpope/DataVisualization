@@ -5,4 +5,11 @@
 //  },
 // $ npm start
 
-document.body.innerHTML = `<h1>${d3.version}</h1>`
+const body = d3.select('body');
+
+body.append('p');
+
+body.selectAll('p')
+    .text(`<h1>${d3.version}</h1>`)
+    .style('color', 'red')
+    .style('font-size', '72px');
